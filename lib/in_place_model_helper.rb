@@ -91,7 +91,18 @@ module InPlaceModelHelper
       read_only = options[:read_only].map(&:to_s)
     end 
 
-    table = "<table>"
+    table = "<table"
+
+    if options[:class]
+      table << " class='#{options[:class]}'"
+    end
+
+    if options[:style]
+      table << " style='#{options[:style]}'"
+    end 
+
+    table << ">"
+
     table << "<tr><td>#{columns.map(&:camelize).join('</td><td>')}</td></tr>"
 
     model.find(:all,:limit => 10).each do |m|
@@ -125,7 +136,17 @@ module InPlaceModelHelper
       read_only = options[:read_only].map(&:to_s)
     end 
 
-    table = "<table>"
+    table = "<table"
+
+    if options[:class]
+      table << " class='#{options[:class]}'"
+    end
+
+    if options[:style]
+      table << " style='#{options[:style]}'"
+    end 
+
+    table << ">"
 
     m = model.find(id)
     values = m.attributes
