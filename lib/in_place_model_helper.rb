@@ -1,5 +1,5 @@
-module InPlaceMacrosHelper
-  # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
+module InPlaceModelHelper 
+   # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
   # editor of a property.
   #
   # A form is automatically created and displayed when the user clicks the element,
@@ -77,22 +77,24 @@ module InPlaceMacrosHelper
     tag = content_tag(tag_options.delete(:tag), h(instance_tag.value(instance_tag.object)),tag_options)
     return tag + in_place_editor(tag_options[:id], in_place_editor_options)
   end
-end
 
-module InPlaceModelHelper 
-  
-  def in_place_model_table(object)
+  def in_place_model_all(object , options = {})
     model = object.to_s.camelize.constantize
     columns = model.columns.map(&:name)
 
+    if options[:exclude]
+      columns = columns - options[:exclude].map(&:to_s)
+    end 
+
     table = "<table>"
-    table << "<th><td>#{columns.map(&:camelize).join('</td><td>')}</td></th>"
+    table << "<tr><td>#{columns.map(&:camelize).join('</td><td>')}</td></tr>"
 
     model.find(:all,:limit => 10).each do |m|
       values = m.attributes
       table << "<tr>"
+      eval "@#{object} = m"
       columns.each do |column|
-        table << "<td>"+in_place_editor_field(m,column)+"</td>"
+        table << "<td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
       end 
       table << "</tr>"
     end 
@@ -100,4 +102,27 @@ module InPlaceModelHelper
     table << "</table>"
     return table
   end
+
+  def in_place_model(object , id , options)
+    model = object.to_s.camelize.constantize
+    columns = model.columns.map(&:name)
+
+    if options[:exclude]
+      columns = columns - options[:exclude].map(&:to_s)
+    end 
+
+    table = "<table>"
+
+    m = model.find(id)
+    values = m.attributes
+    eval "@#{object} = m"
+    columns.each do |column|
+      table << "<tr> <td>#{column.camelize}: </td><td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+    end 
+    table << "</tr>"
+     
+
+    table << "</table>"
+    return table
+  end 
 end 
