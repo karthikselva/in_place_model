@@ -81,9 +81,14 @@ module InPlaceModelHelper
   def in_place_model_all(object , options = {})
     model = object.to_s.camelize.constantize
     columns = model.columns.map(&:name)
+    read_only = ["id","created_at","updated_at"]
 
     if options[:exclude]
       columns = columns - options[:exclude].map(&:to_s)
+    end 
+
+    if options[:read_only]
+      read_only = options[:read_only].map(&:to_s)
     end 
 
     table = "<table>"
@@ -94,7 +99,11 @@ module InPlaceModelHelper
       table << "<tr>"
       eval "@#{object} = m"
       columns.each do |column|
-        table << "<td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+        if read_only.include? column
+          table << "<td>#{m[column]}</td>"
+        else
+          table << "<td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+        end
       end 
       table << "</tr>"
     end 
@@ -106,9 +115,14 @@ module InPlaceModelHelper
   def in_place_model(object , id , options)
     model = object.to_s.camelize.constantize
     columns = model.columns.map(&:name)
+    read_only = ["id","created_at","updated_at"]
 
     if options[:exclude]
       columns = columns - options[:exclude].map(&:to_s)
+    end 
+
+    if options[:read_only]
+      read_only = options[:read_only].map(&:to_s)
     end 
 
     table = "<table>"
@@ -117,7 +131,11 @@ module InPlaceModelHelper
     values = m.attributes
     eval "@#{object} = m"
     columns.each do |column|
-      table << "<tr> <td>#{column.camelize}: </td><td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+      if read_only.include? column
+        table << "<tr> <td>#{column.camelize}: </td><td>#{m[column]}</td>"
+      else
+        table << "<tr> <td>#{column.camelize}: </td><td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+      end
     end 
     table << "</tr>"
      

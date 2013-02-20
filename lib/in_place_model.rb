@@ -11,8 +11,8 @@ module InPlaceModel
   #   end
   #
   #   # View
-  #   <%= in_place_model :post , 1 , :exclude => [:created_at] %>
-  #   <%= in_place_model_all :post  , :exclude => [:created_at] %>
+  #   <%= in_place_model :post , 1 , :exclude => [:created_at]  , :read_only => [:id] %>
+  #   <%= in_place_model_all :post  , :exclude => [:created_at] , :read_only => [:id] %>
   #
   module ClassMethods
     def in_place_edit_for(object, attribute, options = {})
