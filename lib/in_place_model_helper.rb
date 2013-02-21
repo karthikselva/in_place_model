@@ -1,5 +1,5 @@
 module InPlaceModelHelper 
-   # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
+  # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
   # editor of a property.
   #
   # A form is automatically created and displayed when the user clicks the element,
@@ -79,6 +79,8 @@ module InPlaceModelHelper
   end
 
   def in_place_model_all(object , options = {})
+    options.merge(params)
+
     model = object.to_s.camelize.constantize
     columns = model.columns.map(&:name)
     read_only = ["id","created_at","updated_at"]
@@ -91,7 +93,9 @@ module InPlaceModelHelper
       read_only = options[:read_only].map(&:to_s)
     end 
 
-    table = "<table"
+    @models = model.paginate(:page => options[:page]||1 , :per_page => model.per_page)
+    table = will_paginate(@models , :params => { :action => "paginate_#{object}"}).to_s
+    table << "<table"
 
     if options[:class]
       table << " class='#{options[:class]}'"
@@ -102,10 +106,10 @@ module InPlaceModelHelper
     end 
 
     table << ">"
+    table << "<thead><tr><td>#{columns.map(&:camelize).join('</td><td>')}</td></tr></thead>"
+    table << "<tbody>"
 
-    table << "<tr><td>#{columns.map(&:camelize).join('</td><td>')}</td></tr>"
-
-    model.find(:all,:limit => 10).each do |m|
+    @models.each do |m|
       values = m.attributes
       table << "<tr>"
       eval "@#{object} = m"
@@ -119,6 +123,7 @@ module InPlaceModelHelper
       table << "</tr>"
     end 
 
+    table << "</tbody>"
     table << "</table>"
     return table
   end
@@ -148,19 +153,19 @@ module InPlaceModelHelper
 
     table << ">"
 
+    table << "<tbody>"
+
     m = model.find(id)
     values = m.attributes
     eval "@#{object} = m"
     columns.each do |column|
       if read_only.include? column
-        table << "<tr> <td>#{column.camelize}: </td><td>#{m[column]}</td>"
+        table << "<tr> <td>#{column.camelize}: </td><td>#{m[column]}</td></tr>"
       else
-        table << "<tr> <td>#{column.camelize}: </td><td>"+in_place_editor_field(eval(":#{object}"),column)+"</td>"
+        table << "<tr> <td>#{column.camelize}: </td><td>"+in_place_editor_field(eval(":#{object}"),column)+"</td></tr>"
       end
     end 
-    table << "</tr>"
-     
-
+    table << "</tbody>"
     table << "</table>"
     return table
   end 

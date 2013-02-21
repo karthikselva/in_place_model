@@ -27,10 +27,14 @@ module InPlaceModel
     end
 
     def in_place_model_for(object)
-      @model = object.to_s.camelize.constantize
-      @columns = @model.columns.collect{|e| e.name}
+      model = object.to_s.camelize.constantize
+      @columns = model.columns.collect{|e| e.name}
       @columns.each do |column|
         in_place_edit_for(object,column)
+      end
+
+      define_method("paginate_#{object}") do
+        redirect_to "/#{object}" , :page => params[:page]
       end
     end
   end
